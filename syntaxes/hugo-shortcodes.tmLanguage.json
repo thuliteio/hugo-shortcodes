@@ -1,0 +1,53 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Hugo Shortcodes in Markdown",
+  "scopeName": "text.hugo-shortcode.markdown",
+  "injectionSelector": "L:text.html.markdown",
+  "patterns": [
+    {
+      "name": "meta.embedded.block.hugo.shortcode.markdown",
+      "begin": "\\{\\{(%|<)-?",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.shortcode.begin.hugo"
+        },
+        "1": {
+          "name": "keyword.operator.shortcode.delimiter.hugo"
+        }
+      },
+      "end": "-?(%|>)\\}\\}",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.shortcode.end.hugo"
+        },
+        "1": {
+          "name": "keyword.operator.shortcode.delimiter.hugo"
+        }
+      },
+      "patterns": [
+        {
+          "name": "entity.name.function.shortcode.hugo",
+          "match": "\\/?[A-Za-z_][A-Za-z0-9_-]*"
+        },
+        {
+          "name": "variable.parameter.shortcode.argument.hugo",
+          "match": "\\b[A-Za-z_][A-Za-z0-9_-]*(?=\\s*=)"
+        },
+        {
+          "name": "string.quoted.double.hugo",
+          "begin": "\"",
+          "end": "\""
+        },
+        {
+          "name": "string.quoted.single.hugo",
+          "begin": "'",
+          "end": "'"
+        },
+        {
+          "name": "constant.numeric.shortcode.hugo",
+          "match": "\\b\\d+\\b"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "name": "hugo-shortcodes",
+  "displayName": "Hugo Shortcodes",
+  "description": "Syntax highlighting and completions for Hugo shortcodes in Markdown.",
+  "license": "MIT",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.117.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets"
+  ],
+  "keywords": [
+    "hugo",
+    "shortcode",
+    "shortcodes",
+    "markdown",
+    "thulite",
+    "doks"
+  ],
+  "galleryBanner": {
+    "color": "#1F6FEB",
+    "theme": "dark"
+  },
+  "activationEvents": [
+    "onLanguage:markdown",
+    "workspaceContains:**/layouts/_shortcodes/*.html"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Hugo Shortcodes",
+      "properties": {
+        "hugoShortcodes.additionalSearchGlobs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "**/node_modules/@thulite/doks-core/layouts/_shortcodes/*.html"
+          ],
+          "description": "Additional workspace globs to discover shortcode templates. Use this for custom mount layouts."
+        }
+      }
+    },
+    "grammars": [
+      {
+        "scopeName": "text.hugo-shortcode.markdown",
+        "path": "./syntaxes/hugo-shortcodes.tmLanguage.json",
+        "injectTo": [
+          "text.html.markdown",
+          "text.html.markdown.gfm"
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.117.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "typescript-eslint": "^8.56.1",
+    "eslint": "^9.39.3",
+    "typescript": "^5.9.3",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2"
+  }
+}
