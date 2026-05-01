@@ -4,9 +4,9 @@ Syntax highlighting and intelligent completions for Hugo shortcodes inside Markd
 
 This extension focuses on real Hugo shortcode templates found in your workspace and suggests shortcode names and arguments directly from those files.
 
-![Demo](https://raw.githubusercontent.com/thuliteio/hugo-shortcodes/main/images/demo.gif)
-
 ## Features
+
+![Demo](https://raw.githubusercontent.com/thuliteio/hugo-shortcodes/main/images/demo.gif)
 
 - Highlights Hugo shortcode blocks in Markdown, including:
 	- Delimiters (`{{< ... >}}`, `{{% ... %}}`)
