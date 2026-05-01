@@ -15,8 +15,10 @@ This extension focuses on real Hugo shortcode templates found in your workspace 
 	- `%`, `<`, `-`
 - Autocompletes named shortcode arguments based on `.Get "arg"` usage in shortcode templates.
 - Watches shortcode template files and refreshes suggestions automatically when templates change.
-- Includes a default glob for Doks/Thulite shortcode templates:
+- Includes default globs for Doks/Thulite shortcode templates:
 	- `**/node_modules/@thulite/doks-core/layouts/_shortcodes/*.html`
+	- `**/node_modules/@thulite/images/layouts/_shortcodes/*.html`
+	- `**/node_modules/@thulite/inline-svg/layouts/_shortcodes/*.html`
 
 ## Shortcode Discovery
 
@@ -24,6 +26,8 @@ The extension scans these paths by default:
 
 - `**/layouts/_shortcodes/*.html`
 - `**/node_modules/@thulite/doks-core/layouts/_shortcodes/*.html`
+- `**/node_modules/@thulite/images/layouts/_shortcodes/*.html`
+- `**/node_modules/@thulite/inline-svg/layouts/_shortcodes/*.html`
 
 You can add more glob patterns with settings (see below), including workspace-local module mounts and custom shortcode locations.
 
@@ -35,6 +39,8 @@ This extension contributes the following setting:
 	- Type: `string[]`
 	- Default:
 		- `**/node_modules/@thulite/doks-core/layouts/_shortcodes/*.html`
+		- `**/node_modules/@thulite/images/layouts/_shortcodes/*.html`
+		- `**/node_modules/@thulite/inline-svg/layouts/_shortcodes/*.html`
 	- Purpose: Adds extra glob patterns for shortcode template discovery.
 
 Example workspace configuration:

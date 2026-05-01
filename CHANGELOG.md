@@ -4,7 +4,9 @@ All notable changes to the "Hugo Shortcodes" extension will be documented in thi
 
 ## [Unreleased]
 
-- No unreleased changes.
+- Added default shortcode discovery globs for `@thulite/images` and `@thulite/inline-svg`:
+	- `**/node_modules/@thulite/images/layouts/_shortcodes/*.html`
+	- `**/node_modules/@thulite/inline-svg/layouts/_shortcodes/*.html`
 
 ## [0.0.1]
 
