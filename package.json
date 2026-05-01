@@ -38,7 +38,9 @@
             "type": "string"
           },
           "default": [
-            "**/node_modules/@thulite/doks-core/layouts/_shortcodes/*.html"
+            "**/node_modules/@thulite/doks-core/layouts/_shortcodes/*.html",
+            "**/node_modules/@thulite/images/layouts/_shortcodes/*.html",
+            "**/node_modules/@thulite/inline-svg/layouts/_shortcodes/*.html"
           ],
           "description": "Additional workspace globs to discover shortcode templates. Use this for custom mount layouts."
         }
