@@ -16,6 +16,7 @@ This extension focuses on real Hugo shortcode templates found in your workspace 
 - Autocompletes shortcode names while typing in Markdown after trigger characters:
   - `%`, `<`, `-`
 - Autocompletes shortcode names for both opening and closing tags (for example `{{< /details >}}`).
+- Includes built-in definitions for all 11 Hugo embedded shortcodes with documented arguments. Workspace templates with the same name take priority.
 - Autocompletes named shortcode arguments discovered from:
   - `.Get "arg"` usage
   - `.Params.arg` usage
@@ -99,6 +100,8 @@ Example workspace configuration:
 
 ## Recent Improvements
 
+- Built-in completion support for all 11 Hugo embedded shortcodes with correct named/positional args.
+- Workspace shortcode templates override built-ins with the same name (Thulite's `details` takes priority over Hugo's).
 - Closing shortcode name completion (for example while typing `{{< /det...`).
 - Argument discovery from `.Params.arg` and `@param` docs in addition to `.Get`.
 - Positional argument slot suggestions based on `.Get` numeric indexes.

@@ -5,6 +5,67 @@ export type ShortcodeDefinition = {
 	args: string[];
 	positions: number[];
 	uri: vscode.Uri;
+	isBuiltin?: boolean;
+};
+
+type BuiltinShortcode = { args: string[]; positions: number[] };
+
+export const HUGO_BUILTIN_SHORTCODES: Record<string, BuiltinShortcode> = {
+	// https://gohugo.io/shortcodes/details/
+	details: {
+		args: ['class', 'name', 'open', 'summary', 'title'],
+		positions: [],
+	},
+	// https://gohugo.io/shortcodes/figure/
+	figure: {
+		args: ['alt', 'attr', 'attrlink', 'caption', 'class', 'height', 'link', 'loading', 'rel', 'src', 'target', 'title', 'width'],
+		positions: [],
+	},
+	// https://gohugo.io/shortcodes/highlight/
+	highlight: {
+		args: [],
+		positions: [0, 1], // LANG, OPTIONS
+	},
+	// https://gohugo.io/shortcodes/instagram/
+	instagram: {
+		args: [],
+		positions: [0], // post ID
+	},
+	// https://gohugo.io/shortcodes/param/
+	param: {
+		args: [],
+		positions: [0], // param key
+	},
+	// https://gohugo.io/shortcodes/qr/
+	qr: {
+		args: ['alt', 'class', 'id', 'level', 'loading', 'scale', 'targetDir', 'text', 'title'],
+		positions: [],
+	},
+	// https://gohugo.io/shortcodes/ref/
+	ref: {
+		args: ['lang', 'outputFormat', 'path'],
+		positions: [0], // path
+	},
+	// https://gohugo.io/shortcodes/relref/
+	relref: {
+		args: ['lang', 'outputFormat', 'path'],
+		positions: [0], // path
+	},
+	// https://gohugo.io/shortcodes/vimeo/
+	vimeo: {
+		args: ['allowFullScreen', 'class', 'id', 'loading', 'title'],
+		positions: [0], // video ID
+	},
+	// https://gohugo.io/shortcodes/x/
+	x: {
+		args: ['id', 'user'],
+		positions: [],
+	},
+	// https://gohugo.io/shortcodes/youtube/
+	youtube: {
+		args: ['allowFullScreen', 'autoplay', 'class', 'controls', 'end', 'id', 'loading', 'loop', 'mute', 'start', 'title'],
+		positions: [0], // video ID
+	},
 };
 
 class ShortcodeIndex {
@@ -14,6 +75,12 @@ class ShortcodeIndex {
 	public async refresh(): Promise<void> {
 		const files = await this.findTemplateFiles();
 		const next = new Map<string, ShortcodeDefinition>();
+
+		// Seed built-ins first; workspace files below will override any with the same name.
+		const builtinUri = vscode.Uri.parse('hugo:embedded');
+		for (const [name, builtin] of Object.entries(HUGO_BUILTIN_SHORTCODES)) {
+			next.set(name, { name, ...builtin, uri: builtinUri, isBuiltin: true });
+		}
 
 		for (const uri of files) {
 			try {
@@ -144,10 +211,14 @@ function provideShortcodeNameCompletions(
 			item.range = range;
 			item.insertText = shortcode.name;
 			item.documentation = new vscode.MarkdownString(
-				`Source: ${shortcode.uri.fsPath.replace(/\\/g, '/')}`
+				shortcode.isBuiltin
+					? `Hugo embedded shortcode`
+					: `Source: ${shortcode.uri.fsPath.replace(/\\/g, '/')}`
 			);
 			if (context.isClosing) {
 				item.detail = 'Closing shortcode';
+			} else if (shortcode.isBuiltin) {
+				item.detail = 'Hugo built-in';
 			}
 			item.sortText = `0_${shortcode.name}`;
 			return item;
@@ -196,7 +267,9 @@ function provideShortcodeArgCompletions(
 		item.range = range;
 		item.insertText = new vscode.SnippetString(`${arg}="$1"`);
 		item.documentation = new vscode.MarkdownString(
-			`Argument from ${definition.uri.fsPath.replace(/\\/g, '/')}`
+			definition.isBuiltin
+				? `Hugo embedded shortcode argument`
+				: `Argument from ${definition.uri.fsPath.replace(/\\/g, '/')}`
 		);
 		item.sortText = `1_${arg}`;
 		items.push(item);

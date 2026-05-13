@@ -1,6 +1,7 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import {
+	HUGO_BUILTIN_SHORTCODES,
 	parseShortcodeInvocationArgs,
 	parseShortcodeNameCompletionContext,
 	parseShortcodeTemplate,
@@ -114,6 +115,32 @@ suite('Hugo Shortcodes', () => {
 
 		assert.deepStrictEqual(parsed.args, []);
 		assert.deepStrictEqual(parsed.positions, []);
+	});
+
+	test('HUGO_BUILTIN_SHORTCODES covers all 11 embedded shortcodes', () => {
+		const expected = ['details', 'figure', 'highlight', 'instagram', 'param', 'qr', 'ref', 'relref', 'vimeo', 'x', 'youtube'];
+		for (const name of expected) {
+			assert.ok(name in HUGO_BUILTIN_SHORTCODES, `Missing built-in: ${name}`);
+		}
+		assert.strictEqual(Object.keys(HUGO_BUILTIN_SHORTCODES).length, expected.length);
+	});
+
+	test('HUGO_BUILTIN_SHORTCODES figure has expected named args', () => {
+		assert.deepStrictEqual(HUGO_BUILTIN_SHORTCODES['figure'].args, [
+			'alt', 'attr', 'attrlink', 'caption', 'class', 'height',
+			'link', 'loading', 'rel', 'src', 'target', 'title', 'width',
+		]);
+		assert.deepStrictEqual(HUGO_BUILTIN_SHORTCODES['figure'].positions, []);
+	});
+
+	test('HUGO_BUILTIN_SHORTCODES details has named args including open', () => {
+		assert.ok(HUGO_BUILTIN_SHORTCODES['details'].args.includes('open'));
+		assert.ok(HUGO_BUILTIN_SHORTCODES['details'].args.includes('summary'));
+	});
+
+	test('HUGO_BUILTIN_SHORTCODES highlight uses positional args only', () => {
+		assert.deepStrictEqual(HUGO_BUILTIN_SHORTCODES['highlight'].args, []);
+		assert.deepStrictEqual(HUGO_BUILTIN_SHORTCODES['highlight'].positions, [0, 1]);
 	});
 
 	test('parses invocation args with named and positional values', () => {
