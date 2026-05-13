@@ -9,18 +9,23 @@ This extension focuses on real Hugo shortcode templates found in your workspace 
 ![Demo](https://raw.githubusercontent.com/thuliteio/hugo-shortcodes/main/images/demo.gif)
 
 - Highlights Hugo shortcode blocks in Markdown, including:
-	- Delimiters (`{{< ... >}}`, `{{% ... %}}`)
-	- Shortcode name
-	- Named arguments
-	- Strings and numeric literals
+  - Delimiters (`{{< ... >}}`, `{{% ... %}}`)
+  - Shortcode name
+  - Named arguments
+  - Strings and numeric literals
 - Autocompletes shortcode names while typing in Markdown after trigger characters:
-	- `%`, `<`, `-`
-- Autocompletes named shortcode arguments based on `.Get "arg"` usage in shortcode templates.
+  - `%`, `<`, `-`
+- Autocompletes shortcode names for both opening and closing tags (for example `{{< /details >}}`).
+- Autocompletes named shortcode arguments discovered from:
+  - `.Get "arg"` usage
+  - `.Params.arg` usage
+  - `@param` template documentation blocks
+- Suggests positional argument placeholders inferred from `.Get 0`, `.Get 1`, and similar patterns.
 - Watches shortcode template files and refreshes suggestions automatically when templates change.
 - Includes default globs for Doks/Thulite shortcode templates:
-	- `**/node_modules/@thulite/doks-core/layouts/_shortcodes/*.html`
-	- `**/node_modules/@thulite/images/layouts/_shortcodes/*.html`
-	- `**/node_modules/@thulite/inline-svg/layouts/_shortcodes/*.html`
+  - `**/node_modules/@thulite/doks-core/layouts/_shortcodes/*.html`
+  - `**/node_modules/@thulite/images/layouts/_shortcodes/*.html`
+  - `**/node_modules/@thulite/inline-svg/layouts/_shortcodes/*.html`
 
 ## Shortcode Discovery
 
@@ -38,21 +43,21 @@ You can add more glob patterns with settings (see below), including workspace-lo
 This extension contributes the following setting:
 
 - `hugoShortcodes.additionalSearchGlobs`
-	- Type: `string[]`
-	- Default:
-		- `**/node_modules/@thulite/doks-core/layouts/_shortcodes/*.html`
-		- `**/node_modules/@thulite/images/layouts/_shortcodes/*.html`
-		- `**/node_modules/@thulite/inline-svg/layouts/_shortcodes/*.html`
-	- Purpose: Adds extra glob patterns for shortcode template discovery.
+  - Type: `string[]`
+  - Default:
+    - `**/node_modules/@thulite/doks-core/layouts/_shortcodes/*.html`
+    - `**/node_modules/@thulite/images/layouts/_shortcodes/*.html`
+    - `**/node_modules/@thulite/inline-svg/layouts/_shortcodes/*.html`
+  - Purpose: Adds extra glob patterns for shortcode template discovery.
 
 Example workspace configuration:
 
 ```json
 {
-	"hugoShortcodes.additionalSearchGlobs": [
-		"**/layouts/shortcodes/*.html",
-		"**/themes/*/layouts/_shortcodes/*.html"
-	]
+  "hugoShortcodes.additionalSearchGlobs": [
+    "**/layouts/shortcodes/*.html",
+    "**/themes/*/layouts/_shortcodes/*.html"
+  ]
 }
 ```
 
@@ -71,7 +76,9 @@ Example workspace configuration:
 4. Create or open a Markdown file and type `{{<`.
 5. Confirm shortcode name suggestions appear from `layouts/_shortcodes` and Doks paths.
 6. Select a shortcode, add a space, and verify argument suggestions appear.
-7. Edit a shortcode template (`.Get "..."` arguments), save it, and verify suggestions refresh.
+7. Verify closing shortcode suggestions appear while typing `{{< /...`.
+8. For shortcodes using positional arguments (for example `details`), verify positional suggestions appear in the next argument slot.
+9. Edit a shortcode template (`.Get "..."`, `.Params.foo`, or `@param`), save it, and verify suggestions refresh.
 
 ## Requirements
 
@@ -81,15 +88,20 @@ Example workspace configuration:
 ## Known Limitations
 
 - Suggestions are based on currently indexed files in the open workspace.
-- Argument suggestions currently target named args discovered from `.Get "name"` patterns.
+- Positional suggestions are generic placeholders by default, with targeted tokens only for known cases.
 - External mounts outside the opened workspace are not scanned unless they are included via workspace folders/globs.
 
 ## Roadmap
 
-- Positional argument suggestions inferred from `.Get 0`, `.Get 1`, and similar patterns.
 - Better multiline shortcode context detection for completions.
 - Optional documentation hovers for shortcode names and arguments.
 - Broader shortcode discovery patterns for mixed Hugo layout conventions.
+
+## Recent Improvements
+
+- Closing shortcode name completion (for example while typing `{{< /det...`).
+- Argument discovery from `.Params.arg` and `@param` docs in addition to `.Get`.
+- Positional argument slot suggestions based on `.Get` numeric indexes.
 
 ## Release Notes
 

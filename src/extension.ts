@@ -125,12 +125,12 @@ function provideShortcodeNameCompletions(
 	index: ShortcodeIndex
 ): vscode.CompletionItem[] {
 	const line = document.lineAt(position.line).text.slice(0, position.character);
-	const match = line.match(/{{[%<]-?\s*\/?([A-Za-z0-9_-]*)$/);
-	if (!match || line.includes('{{</')) {
+	const context = parseShortcodeNameCompletionContext(line);
+	if (!context) {
 		return [];
 	}
 
-	const typed = match[1] ?? '';
+	const typed = context.typed;
 	const range = new vscode.Range(
 		new vscode.Position(position.line, position.character - typed.length),
 		position
@@ -146,9 +146,26 @@ function provideShortcodeNameCompletions(
 			item.documentation = new vscode.MarkdownString(
 				`Source: ${shortcode.uri.fsPath.replace(/\\/g, '/')}`
 			);
+			if (context.isClosing) {
+				item.detail = 'Closing shortcode';
+			}
 			item.sortText = `0_${shortcode.name}`;
 			return item;
 		});
+}
+
+export function parseShortcodeNameCompletionContext(
+	linePrefix: string
+): { typed: string; isClosing: boolean } | undefined {
+	const match = linePrefix.match(/{{[%<]-?\s*(\/?)\s*([A-Za-z0-9_-]*)$/);
+	if (!match) {
+		return undefined;
+	}
+
+	return {
+		isClosing: match[1] === '/',
+		typed: match[2] ?? '',
+	};
 }
 
 function provideShortcodeArgCompletions(
@@ -164,30 +181,131 @@ function provideShortcodeArgCompletions(
 
 	const shortcodeName = match[1];
 	const definition = index.byName(shortcodeName);
-	if (!definition || definition.args.length === 0) {
+	if (!definition || (definition.args.length === 0 && definition.positions.length === 0)) {
 		return [];
 	}
-
-	const usedArgs = new Set<string>();
-	for (const argMatch of match[2].matchAll(/([A-Za-z_][A-Za-z0-9_-]*)\s*=/g)) {
-		usedArgs.add(argMatch[1]);
-	}
+	const parsedInvocation = parseShortcodeInvocationArgs(match[2]);
+	const usedArgs = new Set<string>(parsedInvocation.namedArgs);
 
 	const range = document.getWordRangeAtPosition(position, /[A-Za-z0-9_-]+/) ??
 		new vscode.Range(position, position);
+	const items: vscode.CompletionItem[] = [];
 
-	return definition.args
-		.filter((arg) => !usedArgs.has(arg))
-		.map((arg) => {
-			const item = new vscode.CompletionItem(arg, vscode.CompletionItemKind.Property);
-			item.range = range;
-			item.insertText = new vscode.SnippetString(`${arg}=\"$1\"`);
-			item.documentation = new vscode.MarkdownString(
-				`Argument from ${definition.uri.fsPath.replace(/\\/g, '/')}`
-			);
-			item.sortText = `1_${arg}`;
-			return item;
-		});
+	for (const arg of definition.args.filter((candidate) => !usedArgs.has(candidate))) {
+		const item = new vscode.CompletionItem(arg, vscode.CompletionItemKind.Property);
+		item.range = range;
+		item.insertText = new vscode.SnippetString(`${arg}="$1"`);
+		item.documentation = new vscode.MarkdownString(
+			`Argument from ${definition.uri.fsPath.replace(/\\/g, '/')}`
+		);
+		item.sortText = `1_${arg}`;
+		items.push(item);
+	}
+
+	const nextPositional = nextPositionalIndex(definition.positions, parsedInvocation.positionalCount);
+	if (nextPositional !== undefined) {
+		for (const suggestion of buildPositionalSuggestions(shortcodeName, nextPositional, definition.uri)) {
+			suggestion.range = range;
+			items.push(suggestion);
+		}
+	}
+
+	return items;
+}
+
+export function parseShortcodeInvocationArgs(rawArgs: string): { namedArgs: string[]; positionalCount: number } {
+	const tokens = splitInvocationTokens(rawArgs);
+	const namedArgs = new Set<string>();
+	let positionalCount = 0;
+
+	for (const token of tokens) {
+		const namedMatch = token.match(/^([A-Za-z_][A-Za-z0-9_-]*)\s*=/);
+		if (namedMatch) {
+			namedArgs.add(namedMatch[1]);
+			continue;
+		}
+
+		if (token.length > 0) {
+			positionalCount += 1;
+		}
+	}
+
+	return {
+		namedArgs: [...namedArgs].sort(),
+		positionalCount,
+	};
+}
+
+function splitInvocationTokens(rawArgs: string): string[] {
+	const tokens: string[] = [];
+	let current = '';
+	let quote: '"' | "'" | undefined;
+
+	for (const char of rawArgs) {
+		if (quote) {
+			current += char;
+			if (char === quote) {
+				quote = undefined;
+			}
+			continue;
+		}
+
+		if (char === '"' || char === "'") {
+			quote = char;
+			current += char;
+			continue;
+		}
+
+		if (/\s/.test(char)) {
+			if (current.length > 0) {
+				tokens.push(current);
+				current = '';
+			}
+			continue;
+		}
+
+		current += char;
+	}
+
+	if (current.length > 0) {
+		tokens.push(current);
+	}
+
+	return tokens;
+}
+
+function nextPositionalIndex(positions: number[], positionalCount: number): number | undefined {
+	const sorted = [...positions].sort((a, b) => a - b);
+	return sorted[positionalCount];
+}
+
+function buildPositionalSuggestions(
+	shortcodeName: string,
+	positionIndex: number,
+	uri: vscode.Uri
+): vscode.CompletionItem[] {
+	const source = uri.fsPath.replace(/\\/g, '/');
+	const items: vscode.CompletionItem[] = [];
+
+	if (shortcodeName === 'details' && positionIndex === 1) {
+		const openItem = new vscode.CompletionItem('open', vscode.CompletionItemKind.Value);
+		openItem.insertText = 'open';
+		openItem.documentation = new vscode.MarkdownString(`Positional argument #1 from ${source}`);
+		openItem.sortText = '2_0_open';
+		items.push(openItem);
+	}
+
+	const positionalItem = new vscode.CompletionItem(`arg${positionIndex}`, vscode.CompletionItemKind.Value);
+	positionalItem.insertText = new vscode.SnippetString(
+		positionIndex === 0 ? '"$1"' : '$1'
+	);
+	positionalItem.documentation = new vscode.MarkdownString(
+		`Positional argument #${positionIndex} from ${source}`
+	);
+	positionalItem.sortText = `2_1_arg${positionIndex}`;
+	items.push(positionalItem);
+
+	return items;
 }
 
 export function parseShortcodeTemplate(uri: vscode.Uri, content: string): ShortcodeDefinition {
@@ -195,6 +313,31 @@ export function parseShortcodeTemplate(uri: vscode.Uri, content: string): Shortc
 	const name = fileName.replace(/\.html$/i, '');
 	const args = new Set<string>();
 	const positions = new Set<number>();
+
+	if (name === 'inline-svg') {
+		for (const arg of [
+			'src',
+			'id',
+			'class',
+			'role',
+			'title',
+			'desc',
+			'ariaLabelledby',
+			'ariaDescribedby',
+			'width',
+			'height',
+		]) {
+			args.add(arg);
+		}
+	}
+
+	for (const match of content.matchAll(/@param\s+\{[^}]+\}\s+\[([^\]]+)\]/g)) {
+		args.add(match[1]);
+	}
+
+	for (const match of content.matchAll(/\.Params\.([A-Za-z_][A-Za-z0-9_-]*)/g)) {
+		args.add(match[1]);
+	}
 
 	for (const match of content.matchAll(/\.Get\s+(?:\"([^\"]+)\"|'([^']+)'|(\d+))/g)) {
 		const named = match[1] ?? match[2];
