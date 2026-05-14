@@ -3,7 +3,17 @@
   "displayName": "Hugo Shortcodes",
   "description": "Syntax highlighting and completions for Hugo shortcodes in Markdown.",
   "license": "MIT",
-  "version": "0.0.1",
+  "version": "0.1.0",
+  "publisher": "thuliteio",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thuliteio/hugo-shortcodes.git"
+  },
+  "homepage": "https://github.com/thuliteio/hugo-shortcodes#readme",
+  "bugs": {
+    "url": "https://github.com/thuliteio/hugo-shortcodes/issues"
+  },
+  "icon": "images/icon.png",
   "engines": {
     "vscode": "^1.117.0"
   },
@@ -63,17 +73,22 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "changeset": "changeset",
+    "changeset:status": "changeset status --verbose",
+    "changeset:version": "changeset version"
   },
   "devDependencies": {
-    "@types/vscode": "^1.117.0",
+    "@changesets/changelog-github": "^0.7.0",
+    "@changesets/cli": "^2.31.0",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^25.6.0",
-    "typescript-eslint": "^8.59.1",
-    "eslint": "^10.2.1",
-    "typescript": "^6.0.3",
+    "@types/node": "^25.7.0",
+    "@types/vscode": "^1.120.0",
     "@vscode/test-cli": "^0.0.12",
-    "@vscode/test-electron": "^2.5.2"
+    "@vscode/test-electron": "^2.5.2",
+    "eslint": "^10.3.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.3"
   },
   "overrides": {
     "diff": "8.0.4",
